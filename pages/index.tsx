@@ -26,7 +26,8 @@ export default function Home() {
                 <img src="./fall-logo.png" alt="Fall logo" className="logo" />
                 <h2>Doty&apos;s Dusty Dog Dryland</h2>
                 <p>Saturday 10/22 - Sunday 10/23, 2022</p>
-                <div className="fake-link-button">Event homepage</div>
+                {/* TODO: do we need the fake-link-buttons? */}
+                {/* <div className="fake-link-button">Event homepage</div> */}
               </div>
             </a>
           </Link>
@@ -46,7 +47,8 @@ export default function Home() {
                 />
                 <h2>Doty&apos;s Dog Days of Winter</h2>
                 <p>Saturday 2/11 - Sunday 2/12, 2023</p>
-                <div className="fake-link-button">Event homepage</div>
+                {/* TODO: do we need the fake-link-buttons? */}
+                {/* <div className="fake-link-button">Event homepage</div> */}
               </div>
             </a>
           </Link>
@@ -58,7 +60,7 @@ export default function Home() {
 
 const HomepageStyles = styled.div`
   .header {
-    padding: 4rem 1.5rem 0;
+    padding: 5rem 1.5rem 0;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -108,7 +110,7 @@ const HomepageStyles = styled.div`
       0 8px 10px -6px rgb(0 0 0 / 0.35);
 
     &:hover {
-      transform: translateY(-2px);
+      transform: translateY(-3px);
       box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0),
         0 8px 10px -6px rgb(0 0 0 / 0);
     }
@@ -159,8 +161,8 @@ const HomepageStyles = styled.div`
   .description {
     position: absolute;
     right: 1.875rem;
-    left: 1.875rem;
-    bottom: 1.5rem;
+    left: 2rem;
+    bottom: 1.875rem;
     z-index: 50;
   }
 
@@ -196,7 +198,7 @@ const HomepageStyles = styled.div`
     font-weight: 500;
     color: #f3f4f6;
     border-radius: 0.3125rem;
-    transition: transform 100ms linear;
+    transition: overflow 100ms linear;
   }
 
   @media (max-width: 1280px) {

@@ -51,7 +51,4 @@ const LayoutStyles = styled.div`
       border-top: 1px solid #dcdfe4;
     }
   }
-
-  @media (max-width: 1280px) {
-  }
 `;
