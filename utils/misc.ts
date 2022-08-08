@@ -31,6 +31,21 @@ export function formatPhoneNumber(input: string) {
     .join('');
 }
 
+export function formatToMoney(input: number, includeDecimal = false) {
+  const price = input / 100;
+
+  if (includeDecimal) {
+    return `$${price.toFixed(2)}`;
+  } else {
+    return `$${price}`;
+  }
+}
+
+export function getUrlParam(param: string | string[] | undefined) {
+  if (!param) return '';
+  return Array.isArray(param) ? param[0] : param;
+}
+
 export function removeNonDigits(input: string) {
   return input.replace(/\D/g, '');
 }

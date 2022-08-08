@@ -1,10 +1,13 @@
 import React from 'react';
 import styled from 'styled-components';
 import { Form, Field, FieldArray, FormikProps, ErrorMessage } from 'formik';
-import { InitialFormValues } from '../interfaces';
+import { Event, InitialFormValues } from '../interfaces';
 import { unitedStates } from '../utils/states';
+import { formatToMoney } from '../utils/misc';
 
-type Props = FormikProps<InitialFormValues>;
+interface Props extends FormikProps<InitialFormValues> {
+  event: Event | undefined;
+}
 
 export default function RegistrationForm(props: Props) {
   const errorsRef = React.useRef<HTMLDivElement>(null);
@@ -36,9 +39,13 @@ export default function RegistrationForm(props: Props) {
                     <div className="item">
                       <Field as="select" name="races.0" id="races.0">
                         <option value="">Select a race</option>
-                        <option value="1">Option 1</option>
-                        <option value="2">Option 2</option>
-                        <option value="3">Option 3</option>
+                        {props.event?.races.map(r => (
+                          <option key={r.id} value={r.id}>
+                            {r.sled} - {r.category}
+                            {r.breed ? ` - ${r.breed}` : null} -{' '}
+                            {formatToMoney(r.price)}
+                          </option>
+                        ))}
                       </Field>
                     </div>
                   ) : (
@@ -51,9 +58,13 @@ export default function RegistrationForm(props: Props) {
                             id={`races.${index}`}
                           >
                             <option value="">Select a race</option>
-                            <option value="1">Option 1</option>
-                            <option value="2">Option 2</option>
-                            <option value="3">Option 3</option>
+                            {props.event?.races.map(r => (
+                              <option key={r.id} value={r.id}>
+                                {r.sled} - {r.category}
+                                {r.breed ? ` - ${r.breed}` : null} -{' '}
+                                {formatToMoney(r.price)}
+                              </option>
+                            ))}
                           </Field>
                           <div className="remove-race-row">
                             <button

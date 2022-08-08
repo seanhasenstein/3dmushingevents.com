@@ -1,11 +1,14 @@
 import React from 'react';
+import { useRouter } from 'next/router';
 import styled from 'styled-components';
 import { Formik } from 'formik';
 import * as Yup from 'yup';
+import { format } from 'date-fns';
 import { InitialFormValues } from '../../../interfaces';
-import { removeNonDigits } from '../../../utils/misc';
+import { getUrlParam, removeNonDigits } from '../../../utils/misc';
 import Layout from '../../../components/Layout';
 import RegistrationForm from '../../../components/RegistrationForm';
+import useEventQuery from '../../../hooks/useEventQuery';
 
 const initialValues: InitialFormValues = {
   firstName: '',
@@ -48,35 +51,54 @@ const validationSchema = Yup.object().shape({
     is: (value: string) => Number(value) < 18,
     then: schema => schema.required('Guardian is requied for anyone under 18'),
   }),
-  races: Yup.array().length(1, 'At least 1 race is required'),
+  races: Yup.array().min(1, 'At least 1 race is required'),
   cardholder: Yup.string().required('Cardholder name is required'),
 });
 
 export default function Register() {
+  const router = useRouter();
+  const query = useEventQuery(
+    getUrlParam(router.query.tag) as 'fall' | 'winter' | undefined
+  );
+
   return (
-    <Layout title="TODO">
+    <Layout
+      title={query.isLoading ? 'Loading...' : query.data ? query.data.name : ''}
+    >
       <RegisterStyles>
-        <div className="page-container">
-          <div className="header">
-            <img src="../../fall-logo.png" alt="Fall logo" className="logo" />
-            <h2>
-              <span>Registration</span> Doty&apos;s Dusty Dog Dryland Race
-            </h2>
-            <p className="dates">Saturday 10/22 - Sunday 10/23, 2022</p>
+        {query.data ? (
+          <div className="page-container">
+            <div className="header">
+              <img
+                src={`../../${query.data.tag}-logo.png`}
+                alt={`${query.data.name} logo`}
+                className="logo"
+              />
+              <h2>
+                <span>Registration</span> {query.data.name}
+              </h2>
+              <p className="dates">
+                {format(new Date(query.data.dates[0]), 'EEEE M/d, yyyy')} -{' '}
+                {format(
+                  new Date(query.data.dates[query.data.dates.length - 1]),
+                  'EEEE M/d, yyyy'
+                )}
+              </p>
+            </div>
+            <div className="form">
+              <Formik
+                initialValues={initialValues}
+                enableReinitialize={true}
+                validationSchema={validationSchema}
+                onSubmit={values => {
+                  console.log(values);
+                }}
+              >
+                {props => <RegistrationForm {...props} event={query.data} />}
+              </Formik>
+            </div>
           </div>
-          <div className="form">
-            <Formik
-              initialValues={initialValues}
-              enableReinitialize={true}
-              validationSchema={validationSchema}
-              onSubmit={values => {
-                console.log(values);
-              }}
-            >
-              {props => <RegistrationForm {...props} />}
-            </Formik>
-          </div>
-        </div>
+        ) : null}
       </RegisterStyles>
     </Layout>
   );

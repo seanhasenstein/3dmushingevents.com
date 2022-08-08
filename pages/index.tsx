@@ -1,8 +1,29 @@
+import { GetServerSideProps } from 'next';
 import Link from 'next/link';
 import styled from 'styled-components';
+import { format } from 'date-fns';
+import { connectToDb, event } from '../db';
+import { Event } from '../interfaces';
+import useEventQuery from '../hooks/useEventQuery';
 import Layout from '../components/Layout';
+import useEventsQuery from '../hooks/useEventsQuery';
 
-export default function Home() {
+export const getServerSideProps: GetServerSideProps = async () => {
+  const db = await connectToDb();
+  const events = await event.getAllEventsWithoutRegistrations(db);
+
+  return { props: { events } };
+};
+
+type Props = {
+  events: Event[];
+};
+
+export default function Home(props: Props) {
+  const eventsQuery = useEventsQuery(props.events);
+  useEventQuery('fall', props.events);
+  useEventQuery('winter', props.events);
+
   return (
     <Layout>
       <HomepageStyles>
@@ -14,44 +35,33 @@ export default function Home() {
           </div>
         </div>
         <div className="events-grid">
-          <Link href="/">
-            <a className="event">
-              <div className="featured-img">
-                <img
-                  src="./fall-1.jpg"
-                  alt="6 race dogs pulling sled on grass trail"
-                />
-              </div>
-              <div className="description">
-                <img src="./fall-logo.png" alt="Fall logo" className="logo" />
-                <h2>Doty&apos;s Dusty Dog Dryland</h2>
-                <p>Saturday 10/22 - Sunday 10/23, 2022</p>
-                {/* TODO: do we need the fake-link-buttons? */}
-                {/* <div className="fake-link-button">Event homepage</div> */}
-              </div>
-            </a>
-          </Link>
-          <Link href="/">
-            <a className="event">
-              <div className="featured-img">
-                <img
-                  src="./winter-1.jpg"
-                  alt="6 race dogs pulling sled on grass trail"
-                />
-              </div>
-              <div className="description">
-                <img
-                  src="./winter-logo.png"
-                  alt="Winter logo"
-                  className="logo"
-                />
-                <h2>Doty&apos;s Dog Days of Winter</h2>
-                <p>Saturday 2/11 - Sunday 2/12, 2023</p>
-                {/* TODO: do we need the fake-link-buttons? */}
-                {/* <div className="fake-link-button">Event homepage</div> */}
-              </div>
-            </a>
-          </Link>
+          {eventsQuery.data?.map(event => (
+            <Link key={event._id} href="/">
+              <a className="event">
+                <div className="featured-img">
+                  <img
+                    src={`./${event.tag}-1.jpg`}
+                    alt="6 race dogs pulling sled on grass trail"
+                  />
+                </div>
+                <div className="description">
+                  <img
+                    src={`./${event.tag}-logo.png`}
+                    alt={`${event.tag} logo`}
+                    className="logo"
+                  />
+                  <h2>{event.name}</h2>
+                  <p>
+                    {format(new Date(event.dates[0]), 'EEEE M/d, yyyy')} -{' '}
+                    {format(
+                      new Date(event.dates[event.dates.length - 1]),
+                      'EEEE M/d, yyyy'
+                    )}
+                  </p>
+                </div>
+              </a>
+            </Link>
+          ))}
         </div>
       </HomepageStyles>
     </Layout>
@@ -187,20 +197,6 @@ const HomepageStyles = styled.div`
     color: #c7cbd2;
   }
 
-  .fake-link-button {
-    margin: 1rem 0 0;
-    padding: 0.6875rem 1.25rem;
-    display: inline-flex;
-    justify-content: center;
-    align-items: center;
-    background-color: #263244;
-    font-size: 1rem;
-    font-weight: 500;
-    color: #f3f4f6;
-    border-radius: 0.3125rem;
-    transition: overflow 100ms linear;
-  }
-
   @media (max-width: 1280px) {
     .events-grid {
       gap: 2rem;
@@ -267,12 +263,6 @@ const HomepageStyles = styled.div`
       font-size: 1rem;
       color: #6b7280;
       text-align: center;
-    }
-
-    .fake-link-button {
-      margin: 1.125rem 0 0;
-      max-width: 18.5rem;
-      width: 100%;
     }
   }
 

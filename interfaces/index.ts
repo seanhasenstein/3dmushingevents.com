@@ -1,3 +1,6 @@
+import { NextApiRequest } from 'next';
+import { Db, MongoClient } from 'mongodb';
+
 export interface Race {
   id: string;
   sled: string;
@@ -39,6 +42,7 @@ export interface Event {
   races: Race[];
   registrations: Registration[];
   logo: string;
+  tag: 'fall' | 'winter';
 }
 
 export interface InitialFormValues {
@@ -51,6 +55,11 @@ export interface InitialFormValues {
   state: string;
   age: string;
   guardian: string;
-  races: never[];
+  races: string[];
   cardholder: string;
+}
+
+export interface ExtendedNextApiRequest extends NextApiRequest {
+  db: Db;
+  dbClient: MongoClient;
 }
