@@ -3,7 +3,11 @@ import styled from 'styled-components';
 import { Form, Field, FieldArray, FormikProps, ErrorMessage } from 'formik';
 import { Event, InitialFormValues } from '../interfaces';
 import { unitedStates } from '../utils/states';
-import { formatToMoney } from '../utils/misc';
+import {
+  calculateRegistrationSummary,
+  formatToMoney,
+  includeISDRAfee,
+} from '../utils/misc';
 
 interface Props extends FormikProps<InitialFormValues> {
   event: Event | undefined;
@@ -11,6 +15,20 @@ interface Props extends FormikProps<InitialFormValues> {
 
 export default function RegistrationForm(props: Props) {
   const errorsRef = React.useRef<HTMLDivElement>(null);
+  const [summary, setSummary] = React.useState({
+    subtotal: 0,
+    isdraFee: 0,
+    trailFee: 0,
+    total: 0,
+  });
+
+  React.useEffect(() => {
+    if (props.event?.races) {
+      setSummary(
+        calculateRegistrationSummary(props.values.races, props.event.races)
+      );
+    }
+  }, [props.values.races]);
 
   React.useEffect(() => {
     if (props.isValid) return;
@@ -114,7 +132,7 @@ export default function RegistrationForm(props: Props) {
             />
           </div>
         </div>
-        <div className="participant-information">
+        <div className="participant-information section">
           <h3>
             <span>Participant information</span>
           </h3>
@@ -219,7 +237,83 @@ export default function RegistrationForm(props: Props) {
             </div>
           ) : null}
         </div>
-        <div className="payment-section">
+        <div className="review-registration section">
+          <h3>
+            <span>Review your registration</span>
+          </h3>
+          {props.values.races.length > 0 ? (
+            <div className="selected-races">
+              <h4>Selected race{props.values.races.length > 1 ? 's' : ''}</h4>
+              <div>
+                {props.values.races.map(r => {
+                  const race = props.event?.races.find(er => er.id === r);
+
+                  if (race) {
+                    return (
+                      <div key={r} className="selected-race">
+                        <p className="race-name">
+                          {race.sled} - {race.category}
+                          {race.breed ? ` - ${race.breed}` : ''}
+                        </p>
+                        <p className="race-price">
+                          {formatToMoney(race.price)}
+                        </p>
+                      </div>
+                    );
+                  }
+                })}
+              </div>
+              <div className="registration-summary">
+                <h4>Registration summary</h4>
+                <div className="summary-item">
+                  <div className="summary-label">Subtotal:</div>
+                  <div className="summary-value">
+                    {formatToMoney(summary.subtotal, true)}
+                  </div>
+                </div>
+                <div className="summary-item">
+                  <div className="summary-label">Trail fee:</div>
+                  <div className="summary-value">
+                    {formatToMoney(summary.trailFee, true)}
+                  </div>
+                </div>
+                {includeISDRAfee(props.values.races, props?.event?.races) ? (
+                  <div className="summary-item">
+                    <div className="summary-label">ISDRA fee:</div>
+                    <div className="summary-value">
+                      {formatToMoney(summary.isdraFee, true)}
+                    </div>
+                  </div>
+                ) : null}
+                <div className="summary-item total">
+                  <div className="summary-label">Total:</div>
+                  <div className="summary-value">
+                    {formatToMoney(summary.total, true)}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="no-races-selected">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
+                />
+              </svg>
+              <h4>No races selected</h4>
+              <p>You need to select at least 1 race to register.</p>
+            </div>
+          )}
+        </div>
+        <div className="payment-section section">
           <h3>
             <span>Payment information</span>
           </h3>
@@ -250,7 +344,7 @@ export default function RegistrationForm(props: Props) {
           </button>
         </div>
         {props.submitCount > 0 && Object.keys(props.errors).length > 0 ? (
-          <div ref={errorsRef}>
+          <div ref={errorsRef} className="errors-list">
             <h4>
               <span>Errors to fix before submitting</span>
             </h4>
@@ -307,7 +401,7 @@ const RegistrationFormStyles = styled.div`
   .race-item {
     margin: 1.125rem 0 0;
     display: grid;
-    grid-template-columns: 1fr 2.5rem;
+    grid-template-columns: minmax(0, 1fr) 2.5rem;
     width: 100%;
 
     &:first-of-type {
@@ -370,8 +464,7 @@ const RegistrationFormStyles = styled.div`
     }
   }
 
-  .participant-information,
-  .payment-section {
+  .section {
     margin: 3rem 0 0;
 
     h3 {
@@ -395,6 +488,98 @@ const RegistrationFormStyles = styled.div`
     margin: 1.25rem 0 0;
     display: flex;
     flex-direction: column;
+  }
+
+  .selected-races {
+    margin: 1.75rem 0 0;
+
+    h4 {
+      font-size: 1rem;
+      font-weight: 600;
+    }
+  }
+
+  .selected-race {
+    padding: 0.625rem 0;
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #374151;
+    border-bottom: 1px solid #d1d5db;
+
+    &:first-of-type {
+      margin: 0.875rem 0 0;
+      border-top: 1px solid #d1d5db;
+    }
+  }
+
+  .no-races-selected {
+    margin: 1.5rem 0;
+    padding: 0.875rem 1rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: #f3f4f6;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+
+    h4 {
+      margin: 0.4375rem 0 0;
+      font-size: 1rem;
+      font-weight: 600;
+      text-align: center;
+    }
+
+    p {
+      margin: 0.3125rem 0 0;
+      font-size: 0.9375rem;
+      font-weight: 500;
+      color: #6b7280;
+      text-align: center;
+    }
+
+    svg {
+      height: 1.5rem;
+      width: 1.5rem;
+      color: #9ca3af;
+    }
+  }
+
+  .registration-summary {
+    margin: 1.875rem 0 0;
+
+    h4 {
+      font-size: 1rem;
+      font-weight: 600;
+    }
+  }
+
+  .summary-item {
+    padding: 0.25rem 0;
+    display: flex;
+    justify-content: space-between;
+
+    &:first-of-type {
+      margin: 0.4375rem 0 0;
+    }
+  }
+
+  .summary-label,
+  .summary-value {
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: #374151;
+  }
+
+  .total {
+    .summary-label,
+    .summary-value {
+      font-weight: 600;
+      color: #111827;
+    }
   }
 
   .actions {
@@ -433,30 +618,32 @@ const RegistrationFormStyles = styled.div`
     }
   }
 
-  h4 {
-    position: relative;
-    margin: 2rem 0 0;
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: #111827;
-    text-align: center;
-    line-height: 1.65;
-    z-index: 10;
+  .errors-list {
+    h4 {
+      position: relative;
+      margin: 2rem 0 0;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: #111827;
+      text-align: center;
+      line-height: 1.65;
+      z-index: 10;
 
-    span {
-      padding: 0 1.25rem;
-      background-color: #f9fafb;
-    }
+      span {
+        padding: 0 1.25rem;
+        background-color: #f9fafb;
+      }
 
-    &::after {
-      content: '';
-      position: absolute;
-      top: 0.75rem;
-      left: 0;
-      height: 1px;
-      width: 100%;
-      background-color: #d1d5db;
-      z-index: -1;
+      &::after {
+        content: '';
+        position: absolute;
+        top: 0.75rem;
+        left: 0;
+        height: 1px;
+        width: 100%;
+        background-color: #d1d5db;
+        z-index: -1;
+      }
     }
   }
 
@@ -501,6 +688,10 @@ const RegistrationFormStyles = styled.div`
   }
 
   @media (max-width: 640px) {
+    .add-race-button {
+      width: 100%;
+    }
+
     .submit-button {
       max-width: unset;
     }

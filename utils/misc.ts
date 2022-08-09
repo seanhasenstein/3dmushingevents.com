@@ -1,4 +1,5 @@
 import * as crypto from 'crypto';
+import { Race } from '../interfaces';
 
 const NUM = '0123456789';
 
@@ -16,6 +17,23 @@ export function createIdNumber() {
   }
 
   return value.join('');
+}
+
+export function calculateRegistrationSummary(raceIds: string[], races: Race[]) {
+  const selectedRaces = races.filter(race => raceIds.includes(race.id));
+  const subtotal = selectedRaces.reduce(
+    (acc, currRace) => acc + currRace.price,
+    0
+  );
+  const isdraFee = selectedRaces.reduce((acc, currRace) => {
+    if (currRace.isdraFee) {
+      acc + 600;
+    }
+    return acc;
+  }, 0);
+  const trailFee = 1400;
+  const total = subtotal + isdraFee + trailFee;
+  return { subtotal, trailFee, isdraFee, total };
 }
 
 export function formatPhoneNumber(input: string) {
@@ -44,6 +62,13 @@ export function formatToMoney(input: number, includeDecimal = false) {
 export function getUrlParam(param: string | string[] | undefined) {
   if (!param) return '';
   return Array.isArray(param) ? param[0] : param;
+}
+
+export function includeISDRAfee(raceIds: string[], races: Race[] | undefined) {
+  if (!races) return;
+  return raceIds.some(id =>
+    races.some(race => race.id === id && race.isdraFee)
+  );
 }
 
 export function removeNonDigits(input: string) {
