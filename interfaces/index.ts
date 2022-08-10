@@ -23,7 +23,7 @@ export interface Registration {
   phone: string;
   city: string;
   state: string;
-  races: Race[];
+  races: string[];
   summary: {
     trailFee: number;
     isdraFee: number;
@@ -59,7 +59,23 @@ export interface InitialFormValues {
   cardholder: string;
 }
 
+export interface Confirmation {
+  name: string;
+  dates: string[];
+  tag: 'fall' | 'winter';
+  races: Race[];
+  registration: Registration;
+}
+
 export interface ExtendedNextApiRequest extends NextApiRequest {
   db: Db;
   dbClient: MongoClient;
 }
+
+type Only<T, U> = {
+  [P in keyof T]: T[P];
+} & {
+  [P in keyof U]?: never;
+};
+
+export type Either<T, U> = Only<T, U> | Only<U, T>;

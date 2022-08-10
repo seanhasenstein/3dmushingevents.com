@@ -31,3 +31,34 @@ export async function getEventWithoutRegistrations(
 
   return result[0];
 }
+
+export async function getRegistrationConfirmation(
+  db: Db,
+  event: 'fall' | 'winter',
+  id: string
+) {
+  const result = await db
+    .collection(collections.events)
+    .aggregate<Event>([
+      { $match: { tag: event } },
+      {
+        $project: {
+          _id: 0,
+          name: 1,
+          tag: 1,
+          dates: 1,
+          races: 1,
+          registrations: {
+            $filter: {
+              input: '$registrations',
+              as: 'registration',
+              cond: { $eq: ['$$registration.id', id] },
+            },
+          },
+        },
+      },
+    ])
+    .toArray();
+
+  return result[0];
+}

@@ -1,5 +1,7 @@
 import React from 'react';
 import { useRouter } from 'next/router';
+import { loadStripe } from '@stripe/stripe-js';
+import { Elements } from '@stripe/react-stripe-js';
 import styled from 'styled-components';
 import { Formik } from 'formik';
 import * as Yup from 'yup';
@@ -55,50 +57,66 @@ const validationSchema = Yup.object().shape({
   cardholder: Yup.string().required('Cardholder name is required'),
 });
 
+if (!process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY) {
+  throw new Error('Failed to load Stripe. Please reload the page.');
+}
+
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY, {
+  apiVersion: '2022-08-01',
+});
+
 export default function Register() {
   const router = useRouter();
   const query = useEventQuery(
     getUrlParam(router.query.tag) as 'fall' | 'winter' | undefined
   );
 
+  const options = {
+    appearance: {
+      theme: 'stripe' as const,
+    },
+  };
+
   return (
     <Layout
       title={query.isLoading ? 'Loading...' : query.data ? query.data.name : ''}
     >
       <RegisterStyles>
-        {query.data ? (
-          <div className="page-container">
-            <div className="header">
-              <img
-                src={`../../${query.data.tag}-logo.png`}
-                alt={`${query.data.name} logo`}
-                className="logo"
-              />
-              <h2>
-                <span>Registration</span> {query.data.name}
-              </h2>
-              <p className="dates">
-                {format(new Date(query.data.dates[0]), 'EEEE M/d, yyyy')} -{' '}
-                {format(
-                  new Date(query.data.dates[query.data.dates.length - 1]),
-                  'EEEE M/d, yyyy'
-                )}
-              </p>
+        <Elements options={options} stripe={stripePromise}>
+          {query.data ? (
+            <div className="page-container">
+              <div className="header">
+                <img
+                  src={`../../${query.data.tag}-logo.png`}
+                  alt={`${query.data.name} logo`}
+                  className="logo"
+                />
+                <h2>
+                  <span>Registration</span> {query.data.name}
+                </h2>
+                <p className="dates">
+                  {format(new Date(query.data.dates[0]), 'EEEE M/d, yyyy')} -{' '}
+                  {format(
+                    new Date(query.data.dates[query.data.dates.length - 1]),
+                    'EEEE M/d, yyyy'
+                  )}
+                </p>
+              </div>
+              <div className="form">
+                <Formik
+                  initialValues={initialValues}
+                  enableReinitialize={true}
+                  validationSchema={validationSchema}
+                  onSubmit={values => {
+                    console.log(values);
+                  }}
+                >
+                  {props => <RegistrationForm {...props} event={query.data} />}
+                </Formik>
+              </div>
             </div>
-            <div className="form">
-              <Formik
-                initialValues={initialValues}
-                enableReinitialize={true}
-                validationSchema={validationSchema}
-                onSubmit={values => {
-                  console.log(values);
-                }}
-              >
-                {props => <RegistrationForm {...props} event={query.data} />}
-              </Formik>
-            </div>
-          </div>
-        ) : null}
+          ) : null}
+        </Elements>
       </RegisterStyles>
     </Layout>
   );

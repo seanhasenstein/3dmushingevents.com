@@ -1,5 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
+import { CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { Form, Field, FieldArray, FormikProps, ErrorMessage } from 'formik';
 import { Event, InitialFormValues } from '../interfaces';
 import { unitedStates } from '../utils/states';
@@ -7,14 +8,20 @@ import {
   calculateRegistrationSummary,
   formatToMoney,
   includeISDRAfee,
+  // removeNonDigits,
 } from '../utils/misc';
+import { StripeCardElementChangeEvent } from '@stripe/stripe-js';
 
 interface Props extends FormikProps<InitialFormValues> {
   event: Event | undefined;
 }
 
 export default function RegistrationForm(props: Props) {
+  const stripe = useStripe();
+  const elements = useElements();
   const errorsRef = React.useRef<HTMLDivElement>(null);
+  const [stripeError, setStripeError] = React.useState<string>();
+
   const [summary, setSummary] = React.useState({
     subtotal: 0,
     isdraFee: 0,
@@ -22,6 +29,7 @@ export default function RegistrationForm(props: Props) {
     total: 0,
   });
 
+  // update summary
   React.useEffect(() => {
     if (props.event?.races) {
       setSummary(
@@ -30,6 +38,8 @@ export default function RegistrationForm(props: Props) {
     }
   }, [props.values.races]);
 
+  // scroll to bottom if there are validation errors
+  // when submit button is clicked to inform user
   React.useEffect(() => {
     if (props.isValid) return;
 
@@ -37,6 +47,34 @@ export default function RegistrationForm(props: Props) {
       errorsRef.current?.scrollIntoView();
     }
   }, [props.submitCount]);
+
+  const handleCardChange = (e: StripeCardElementChangeEvent) => {
+    if (e.error) {
+      setStripeError(e.error.message);
+      return;
+    }
+
+    setStripeError(undefined);
+  };
+
+  // const handleSubmit = async (formValues: InitialFormValues) => {
+  //   const cardElement = elements?.getElement(CardElement);
+
+  //   if (!stripe || !cardElement) {
+  //     setStripeError('Error loading Stripe. Please refresh the page and try again')
+  //     return;
+  //   }
+
+  //   const result = await stripe.createPaymentMethod({
+  //     type: 'card',
+  //     card: cardElement,
+  //     billing_details: {
+  //       name: formValues.cardholder,
+  //       email: formValues.email.toLowerCase().trim(),
+  //       phone: removeNonDigits(formValues.phone)
+  //     }
+  //   });
+  // }
 
   return (
     <RegistrationFormStyles>
@@ -58,7 +96,7 @@ export default function RegistrationForm(props: Props) {
                       <Field as="select" name="races.0" id="races.0">
                         <option value="">Select a race</option>
                         {props.event?.races.map(r => (
-                          <option key={r.id} value={r.id}>
+                          <option key={`0.${r.id}`} value={r.id}>
                             {r.sled} - {r.category}
                             {r.breed ? ` - ${r.breed}` : null} -{' '}
                             {formatToMoney(r.price)}
@@ -237,81 +275,83 @@ export default function RegistrationForm(props: Props) {
             </div>
           ) : null}
         </div>
-        <div className="review-registration section">
+        <div className="section">
           <h3>
             <span>Review your registration</span>
           </h3>
-          {props.values.races.length > 0 ? (
-            <div className="selected-races">
-              <h4>Selected race{props.values.races.length > 1 ? 's' : ''}</h4>
-              <div>
-                {props.values.races.map(r => {
-                  const race = props.event?.races.find(er => er.id === r);
+          <div className="review-registration">
+            {props.values.races.length > 0 ? (
+              <div className="selected-races">
+                <h4>Selected races</h4>
+                <div>
+                  {props.values.races.map(r => {
+                    const race = props.event?.races.find(er => er.id === r);
 
-                  if (race) {
-                    return (
-                      <div key={r} className="selected-race">
-                        <p className="race-name">
-                          {race.sled} - {race.category}
-                          {race.breed ? ` - ${race.breed}` : ''}
-                        </p>
-                        <p className="race-price">
-                          {formatToMoney(race.price)}
-                        </p>
-                      </div>
-                    );
-                  }
-                })}
-              </div>
-              <div className="registration-summary">
-                <h4>Registration summary</h4>
-                <div className="summary-item">
-                  <div className="summary-label">Subtotal:</div>
-                  <div className="summary-value">
-                    {formatToMoney(summary.subtotal, true)}
-                  </div>
+                    if (race) {
+                      return (
+                        <div key={r} className="selected-race">
+                          <p className="race-name">
+                            {race.sled} - {race.category}
+                            {race.breed ? ` - ${race.breed}` : ''}
+                          </p>
+                          <p className="race-price">
+                            {formatToMoney(race.price)}
+                          </p>
+                        </div>
+                      );
+                    }
+                  })}
                 </div>
-                <div className="summary-item">
-                  <div className="summary-label">Trail fee:</div>
-                  <div className="summary-value">
-                    {formatToMoney(summary.trailFee, true)}
-                  </div>
-                </div>
-                {includeISDRAfee(props.values.races, props?.event?.races) ? (
+                <div className="registration-summary">
+                  {/* <h4>Summary</h4> */}
                   <div className="summary-item">
-                    <div className="summary-label">ISDRA fee:</div>
+                    <div className="summary-label">Subtotal:</div>
                     <div className="summary-value">
-                      {formatToMoney(summary.isdraFee, true)}
+                      {formatToMoney(summary.subtotal, true)}
                     </div>
                   </div>
-                ) : null}
-                <div className="summary-item total">
-                  <div className="summary-label">Total:</div>
-                  <div className="summary-value">
-                    {formatToMoney(summary.total, true)}
+                  <div className="summary-item">
+                    <div className="summary-label">Trail fee:</div>
+                    <div className="summary-value">
+                      {formatToMoney(summary.trailFee, true)}
+                    </div>
+                  </div>
+                  {includeISDRAfee(props.values.races, props?.event?.races) ? (
+                    <div className="summary-item">
+                      <div className="summary-label">ISDRA fee:</div>
+                      <div className="summary-value">
+                        {formatToMoney(summary.isdraFee, true)}
+                      </div>
+                    </div>
+                  ) : null}
+                  <div className="summary-item total">
+                    <div className="summary-label">Total:</div>
+                    <div className="summary-value">
+                      {formatToMoney(summary.total, true)}
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ) : (
-            <div className="no-races-selected">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
-                />
-              </svg>
-              <h4>No races selected</h4>
-              <p>You need to select at least 1 race to register.</p>
-            </div>
-          )}
+            ) : (
+              <div className="no-races-selected">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                  />
+                </svg>
+                <h4>No races selected</h4>
+                <p>You need to select at least 1 race to register.</p>
+              </div>
+            )}
+          </div>
         </div>
         <div className="payment-section section">
           <h3>
@@ -327,13 +367,22 @@ export default function RegistrationForm(props: Props) {
             />
           </div>
           <div className="item">
-            <pre>Stripe input will go here...</pre>
+            <label htmlFor="stripe">Card details</label>
+            <CardElement id="payment-element" onChange={handleCardChange} />
+            {stripeError ? (
+              <div className="stripe-error">{stripeError}</div>
+            ) : null}
           </div>
         </div>
         <div className="actions">
           <button
             type="submit"
-            disabled={props.isSubmitting}
+            disabled={
+              !stripe ||
+              !elements ||
+              props.values.races.length === 0 ||
+              props.isSubmitting
+            }
             className="submit-button"
           >
             {props.isSubmitting ? (
@@ -478,21 +527,22 @@ const RegistrationFormStyles = styled.div`
     gap: 0 1.5rem;
   }
 
-  .birthday-grid {
-    display: grid;
-    grid-template-columns: repeat(3, calc(33.3333% - 0.667rem));
-    gap: 1rem;
-  }
-
   .item {
     margin: 1.25rem 0 0;
     display: flex;
     flex-direction: column;
   }
 
-  .selected-races {
-    margin: 1.75rem 0 0;
+  .review-registration {
+    margin: 1.625rem 0 0;
+    padding: 1.125rem 1.25rem;
+    background: #fff;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  }
 
+  .selected-races {
     h4 {
       font-size: 1rem;
       font-weight: 600;
@@ -500,31 +550,24 @@ const RegistrationFormStyles = styled.div`
   }
 
   .selected-race {
-    padding: 0.625rem 0;
+    padding: 0.375rem 0;
     display: flex;
     justify-content: space-between;
     gap: 1rem;
     font-size: 0.875rem;
     font-weight: 500;
     color: #374151;
-    border-bottom: 1px solid #d1d5db;
 
     &:first-of-type {
-      margin: 0.875rem 0 0;
-      border-top: 1px solid #d1d5db;
+      margin: 0.5rem 0 0;
     }
   }
 
   .no-races-selected {
-    margin: 1.5rem 0;
-    padding: 0.875rem 1rem 1.25rem;
+    margin: 0 0 0.5rem;
     display: flex;
     flex-direction: column;
     align-items: center;
-    background-color: #f3f4f6;
-    border: 1px solid #d1d5db;
-    border-radius: 0.5rem;
-    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
 
     h4 {
       margin: 0.4375rem 0 0;
@@ -549,7 +592,7 @@ const RegistrationFormStyles = styled.div`
   }
 
   .registration-summary {
-    margin: 1.875rem 0 0;
+    margin: 1.5rem 0 0;
 
     h4 {
       font-size: 1rem;
@@ -563,13 +606,13 @@ const RegistrationFormStyles = styled.div`
     justify-content: space-between;
 
     &:first-of-type {
-      margin: 0.4375rem 0 0;
+      margin: 0.5rem 0 0;
     }
   }
 
   .summary-label,
   .summary-value {
-    font-size: 0.9375rem;
+    font-size: 0.875rem;
     font-weight: 500;
     color: #374151;
   }
@@ -583,7 +626,7 @@ const RegistrationFormStyles = styled.div`
   }
 
   .actions {
-    margin: 1.5rem 0 0;
+    margin: 1.75rem 0 0;
     display: flex;
     justify-content: flex-end;
   }
@@ -608,13 +651,22 @@ const RegistrationFormStyles = styled.div`
     &:hover {
       background-color: #2d3b51;
     }
+
     &:focus {
       outline: 2px solid transparent;
       outline-offset: 2px;
     }
+
     &:focus-visible {
       box-shadow: #f9fafb 0px 0px 0px 2px, #2672e5 0px 0px 0px 4px,
         rgba(0, 0, 0, 0.05) 0px 1px 2px 0px;
+    }
+
+    &:disabled,
+    &:disabled:hover {
+      background-color: #263244;
+      color: rgba(255, 255, 255, 0.75);
+      cursor: default;
     }
   }
 
@@ -685,6 +737,31 @@ const RegistrationFormStyles = styled.div`
     font-weight: 500;
     color: #be123c;
     line-height: 1.5;
+  }
+
+  /* STRIPE CARD ELEMENT STYLES */
+  .StripeElement {
+    margin: 0;
+    padding: 0.625rem 0.75rem;
+    background-color: #fff;
+    border: 1px solid #c9cbd1;
+    border-radius: 0.25rem;
+    font-size: 0.875rem;
+    box-shadow: rgba(0, 0, 0, 0) 0px 0px 0px 0px,
+      rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.05) 0px 1px 2px 0px;
+  }
+
+  .StripeElement--focus {
+    box-shadow: rgb(255, 255, 255) 0px 0px 0px 0px, #1860cc 0px 0px 0px 1px,
+      rgba(0, 0, 0, 0.05) 0px 1px 2px 0px;
+    border: 1px solid #1860cc;
+  }
+
+  .stripe-error {
+    margin: 0.375rem 0 0;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #be123c;
   }
 
   @media (max-width: 640px) {

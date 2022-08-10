@@ -80,6 +80,10 @@ a {
   overflow: hidden;
 }
 
+.capitalize {
+  text-transform: capitalize;
+}
+
 label {
   margin: 0 0 0.5rem;
   font-size: 0.875rem;
