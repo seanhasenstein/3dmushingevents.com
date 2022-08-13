@@ -12,6 +12,7 @@ export default function useEventQuery(
     {
       initialData: events?.find(event => event.tag === eventTag),
       staleTime: 1000 * 60 * 10,
+      enabled: eventTag !== undefined,
     }
   );
 

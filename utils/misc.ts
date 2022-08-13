@@ -19,7 +19,12 @@ export function createIdNumber() {
   return value.join('');
 }
 
-export function calculateRegistrationSummary(raceIds: string[], races: Race[]) {
+export function calculateRegistrationSummary(
+  raceIds: string[],
+  races: Race[],
+  isdraRaceFee: number,
+  trailFee: number
+) {
   const selectedRaces = races.filter(race => raceIds.includes(race.id));
   const subtotal = selectedRaces.reduce(
     (acc, currRace) => acc + currRace.price,
@@ -27,11 +32,10 @@ export function calculateRegistrationSummary(raceIds: string[], races: Race[]) {
   );
   const isdraFee = selectedRaces.reduce((acc, currRace) => {
     if (currRace.isdraFee) {
-      acc + 600;
+      acc + isdraRaceFee;
     }
     return acc;
   }, 0);
-  const trailFee = 1400;
   const total = subtotal + isdraFee + trailFee;
   return { subtotal, trailFee, isdraFee, total };
 }

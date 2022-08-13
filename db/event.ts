@@ -1,5 +1,5 @@
 import { Db } from 'mongodb';
-import { Event } from '../interfaces';
+import { Event, Registration } from '../interfaces';
 
 const collections = {
   events: 'events',
@@ -61,4 +61,19 @@ export async function getRegistrationConfirmation(
     .toArray();
 
   return result[0];
+}
+
+export async function addRegistrationToEvent(
+  db: Db,
+  event: 'fall' | 'winter',
+  registration: Registration
+) {
+  const result = await db
+    .collection<Event>(collections.events)
+    .findOneAndUpdate(
+      { tag: event },
+      { $push: { registrations: registration } },
+      { returnDocument: 'after' }
+    );
+  return result.value;
 }

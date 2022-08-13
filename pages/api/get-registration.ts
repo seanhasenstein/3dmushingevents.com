@@ -27,7 +27,7 @@ const handler = nc<Request, NextApiResponse>({
       req.query.id
     );
 
-    if (!result) {
+    if (result.registrations.length === 0) {
       res.json({ notFound: true });
       return;
     }

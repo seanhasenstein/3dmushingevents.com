@@ -36,7 +36,7 @@ export default function Home(props: Props) {
         </div>
         <div className="events-grid">
           {eventsQuery.data?.map(event => (
-            <Link key={event._id} href="/">
+            <Link key={event._id} href={`/event/${event.tag}`}>
               <a className="event">
                 <div className="featured-img">
                   <img

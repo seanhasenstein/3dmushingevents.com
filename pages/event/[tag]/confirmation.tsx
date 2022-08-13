@@ -20,7 +20,7 @@ export default function Confirmation() {
   const { data, isLoading, isError } = useQuery(
     ['registration', id],
     () => fetchRegistration(event, id),
-    { staleTime: Infinity }
+    { staleTime: Infinity, enabled: event !== undefined && id !== undefined }
   );
 
   React.useEffect(() => {
@@ -44,7 +44,7 @@ export default function Confirmation() {
   return (
     <Layout title={isLoading ? 'Loading...' : data ? 'Confirmation' : ''}>
       <ConfirmationStyles>
-        {isLoading ? 'Loading...' : null}
+        {/* {isLoading ? 'Loading...' : null} */}
         {/* TODO: style the error message */}
         {isError ? 'Internal server error' : null}
         {/* TODO: style the not found message */}
@@ -52,6 +52,22 @@ export default function Confirmation() {
 
         {data?.confirmation ? (
           <div className="container">
+            <Link href="/">
+              <a className="back-link">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M7.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l2.293 2.293a1 1 0 010 1.414z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                Back to homepage
+              </a>
+            </Link>
             <div className="header">
               <img
                 src={`../../${data.confirmation.tag}-logo.png`}
@@ -181,8 +197,7 @@ export default function Confirmation() {
                   );
                 })}
               </div>
-              <div className="section">
-                <h4>Summary</h4>
+              <div className="section summary-section">
                 <div className="summary-item">
                   <div className="label">Subtotal</div>
                   <div className="value">
@@ -232,6 +247,34 @@ export default function Confirmation() {
 
 const ConfirmationStyles = styled.div`
   padding: 3rem 1.5rem 5rem;
+  position: relative;
+
+  .back-link {
+    position: absolute;
+    top: 2rem;
+    left: 2.5rem;
+    display: flex;
+    align-items: center;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #374151;
+    transition: color 100ms linear;
+
+    &:hover {
+      color: #111827;
+
+      svg {
+        transform: translateX(-1px);
+      }
+    }
+
+    svg {
+      margin: 0 0.375rem 0 0;
+      height: 1rem;
+      width: 1rem;
+      color: #9ca3af;
+    }
+  }
 
   .container {
     margin: 0 auto;
@@ -305,8 +348,10 @@ const ConfirmationStyles = styled.div`
     }
 
     p {
-      margin: 1rem 0 0;
-      color: #6b7280;
+      margin: 0.875rem 0 0;
+      font-size: 1rem;
+      font-weight: 500;
+      color: #4b5563;
       line-height: 1.5;
 
       a {
@@ -340,7 +385,8 @@ const ConfirmationStyles = styled.div`
       }
 
       .value {
-        color: #374151;
+        font-weight: 500;
+        color: #4b5563;
       }
     }
   }
@@ -351,33 +397,49 @@ const ConfirmationStyles = styled.div`
     justify-content: space-between;
     gap: 1.5rem;
     font-size: 1rem;
-    color: #374151;
+    font-weight: 500;
+    color: #4b5563;
 
     &:first-of-type {
       margin: 0.375rem 0 0;
     }
   }
 
+  .summary-section {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+  }
+
   .summary-item {
-    padding: 0.1875rem 0;
+    padding: 0.25rem 0;
+    max-width: 13rem;
+    width: 100%;
     display: flex;
     justify-content: space-between;
     font-size: 1rem;
-    color: #374151;
-
-    &:first-of-type {
-      margin: 0.375rem 0 0;
-    }
+    font-weight: 500;
+    color: #4b5563;
 
     &.total {
       font-weight: 600;
-      color: #111827;
+      color: #000;
     }
   }
 
   @media (max-width: 640px) {
+    padding: 5rem 1.5rem;
+
     .box-container {
       padding: 2.5rem 1.3125rem;
+    }
+
+    .back-link {
+      padding: 0.25rem 0;
+      top: 2rem;
+      left: calc(50% - 6rem);
+      width: 12rem;
+      justify-content: center;
     }
 
     .participant-details .item {
@@ -386,7 +448,14 @@ const ConfirmationStyles = styled.div`
       flex-direction: column;
       gap: 0.25rem;
       word-wrap: break-word;
-      /* text-align: center; */
+    }
+
+    .summary-section {
+      align-items: flex-start;
+    }
+
+    .summary-item {
+      max-width: unset;
     }
   }
 

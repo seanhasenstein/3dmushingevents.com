@@ -1,61 +1,14 @@
 import React from 'react';
 import { useRouter } from 'next/router';
+import Link from 'next/link';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements } from '@stripe/react-stripe-js';
 import styled from 'styled-components';
-import { Formik } from 'formik';
-import * as Yup from 'yup';
 import { format } from 'date-fns';
-import { InitialFormValues } from '../../../interfaces';
-import { getUrlParam, removeNonDigits } from '../../../utils/misc';
+import { getUrlParam } from '../../../utils/misc';
+import useEventQuery from '../../../hooks/useEventQuery';
 import Layout from '../../../components/Layout';
 import RegistrationForm from '../../../components/RegistrationForm';
-import useEventQuery from '../../../hooks/useEventQuery';
-
-const initialValues: InitialFormValues = {
-  firstName: '',
-  lastName: '',
-  gender: '',
-  email: '',
-  phone: '',
-  city: '',
-  state: '',
-  age: '',
-  guardian: '',
-  races: [],
-  cardholder: '',
-};
-
-const validationSchema = Yup.object().shape({
-  firstName: Yup.string().required('First name is required'),
-  lastName: Yup.string().required('Last name is required'),
-  email: Yup.string()
-    .email('Invalid email address')
-    .required('Email is required'),
-  phone: Yup.string()
-    .transform(value => {
-      return removeNonDigits(value);
-    })
-    .matches(new RegExp(/^\d{10}$/), 'Must be a valid 10 digit number')
-    .required('Phone is required'),
-  city: Yup.string().required('Your city is required'),
-  state: Yup.string().required('Your state is required'),
-  age: Yup.string()
-    .test('age-test', 'Invalid age provided', (values, context) => {
-      if (isNaN(Number(values))) {
-        return context.createError({ message: 'Invalid age provided' });
-      }
-
-      return true;
-    })
-    .required('Age on race day is required'),
-  guardian: Yup.string().when('age', {
-    is: (value: string) => Number(value) < 18,
-    then: schema => schema.required('Guardian is requied for anyone under 18'),
-  }),
-  races: Yup.array().min(1, 'At least 1 race is required'),
-  cardholder: Yup.string().required('Cardholder name is required'),
-});
 
 if (!process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY) {
   throw new Error('Failed to load Stripe. Please reload the page.');
@@ -83,8 +36,25 @@ export default function Register() {
     >
       <RegisterStyles>
         <Elements options={options} stripe={stripePromise}>
+          {query.isError ? 'TODO: add an error message' : null}
           {query.data ? (
             <div className="page-container">
+              <Link href={`/event/${query.data.tag}`}>
+                <a className="back-link">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M7.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l2.293 2.293a1 1 0 010 1.414z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  Back to event page
+                </a>
+              </Link>
               <div className="header">
                 <img
                   src={`../../${query.data.tag}-logo.png`}
@@ -103,16 +73,7 @@ export default function Register() {
                 </p>
               </div>
               <div className="form">
-                <Formik
-                  initialValues={initialValues}
-                  enableReinitialize={true}
-                  validationSchema={validationSchema}
-                  onSubmit={values => {
-                    console.log(values);
-                  }}
-                >
-                  {props => <RegistrationForm {...props} event={query.data} />}
-                </Formik>
+                <RegistrationForm event={query.data} />
               </div>
             </div>
           ) : null}
@@ -123,7 +84,35 @@ export default function Register() {
 }
 
 const RegisterStyles = styled.div`
-  padding: 3rem 1.5rem;
+  padding: 3rem 1.5rem 5rem;
+  position: relative;
+
+  .back-link {
+    position: absolute;
+    top: 2rem;
+    left: 2.5rem;
+    display: flex;
+    align-items: center;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #374151;
+    transition: color 100ms linear;
+
+    &:hover {
+      color: #111827;
+
+      svg {
+        transform: translateX(-1px);
+      }
+    }
+
+    svg {
+      margin: 0 0.375rem 0 0;
+      height: 1rem;
+      width: 1rem;
+      color: #9ca3af;
+    }
+  }
 
   .page-container {
     margin: 0 auto;
@@ -175,9 +164,21 @@ const RegisterStyles = styled.div`
     margin: 3rem 0 0;
   }
 
+  @media (max-width: 640px) {
+    padding: 5rem 1.5rem;
+
+    .back-link {
+      padding: 0.25rem 0;
+      top: 2rem;
+      left: calc(50% - 6rem);
+      width: 12rem;
+      justify-content: center;
+    }
+  }
+
   @media (max-width: 375px) {
     .dates {
-      font-size: 0.6875rem;
+      font-size: 0.5625rem;
     }
   }
 `;

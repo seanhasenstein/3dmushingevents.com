@@ -31,6 +31,7 @@ export interface Registration {
     total: number;
     stripeFee: number;
   };
+  stripeId: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -43,6 +44,8 @@ export interface Event {
   registrations: Registration[];
   logo: string;
   tag: 'fall' | 'winter';
+  trailFee: number;
+  isdraRaceFee: number;
 }
 
 export interface InitialFormValues {
