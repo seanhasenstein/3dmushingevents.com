@@ -39,22 +39,24 @@ export default function Register() {
           {query.isError ? 'TODO: add an error message' : null}
           {query.data ? (
             <div className="page-container">
-              <Link href={`/event/${query.data.tag}`}>
-                <a className="back-link">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M7.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l2.293 2.293a1 1 0 010 1.414z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                  Back to event page
-                </a>
-              </Link>
+              <div className="actions-row">
+                <Link href={`/event/${query.data.tag}`}>
+                  <a className="back-link">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M7.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l2.293 2.293a1 1 0 010 1.414z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                    Back to event page
+                  </a>
+                </Link>
+              </div>
               <div className="header">
                 <img
                   src={`../../${query.data.tag}-logo.png`}
@@ -93,7 +95,7 @@ const RegisterStyles = styled.div`
     left: 2.5rem;
     display: flex;
     align-items: center;
-    font-size: 0.875rem;
+    font-size: 1rem;
     font-weight: 500;
     color: #374151;
     transition: color 100ms linear;
@@ -107,7 +109,7 @@ const RegisterStyles = styled.div`
     }
 
     svg {
-      margin: 0 0.375rem 0 0;
+      margin: 0 0.5rem 0 0;
       height: 1rem;
       width: 1rem;
       color: #9ca3af;
@@ -165,14 +167,23 @@ const RegisterStyles = styled.div`
   }
 
   @media (max-width: 640px) {
-    padding: 5rem 1.5rem;
+    padding: 0 1.5rem 5rem;
+
+    .actions-row {
+      padding: 1.5rem 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border-bottom: 1px solid #dadde2;
+    }
 
     .back-link {
       padding: 0.25rem 0;
-      top: 2rem;
-      left: calc(50% - 6rem);
-      width: 12rem;
-      justify-content: center;
+      position: static;
+    }
+
+    .header {
+      margin: 1.5rem 0 0;
     }
   }
 

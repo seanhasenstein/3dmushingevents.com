@@ -1,5 +1,5 @@
 import { format, utcToZonedTime } from 'date-fns-tz';
-import { Event, Registration } from '../interfaces';
+import { ContactFormMessage, Event, Registration } from '../interfaces';
 import { formatPhoneNumber, formatToMoney } from '../utils/misc';
 
 type Races = {
@@ -724,4 +724,17 @@ export function generateConfirmationEmail(
     races
   );
   return { text, html, adminTextEmail };
+}
+
+export function generateContactFormEmail(message: ContactFormMessage) {
+  return `3D Mushing Events Conact Form Message\n\nID: ${
+    message.id
+  }\nTimestamp: ${format(
+    utcToZonedTime(new Date(), 'America/Chicago'),
+    "LLLL do, yyyy 'at' pp"
+  )}\n\nName: ${message.name}\nEmail: ${message.email}\nPhone: ${
+    message.phone
+  }\n\nMessage:\n${
+    message.message
+  }\n\n\n*This message was sent from the contact form on 3dmushingevents.com.`;
 }

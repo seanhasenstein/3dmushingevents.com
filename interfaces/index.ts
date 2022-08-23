@@ -36,6 +36,12 @@ export interface Registration {
   updatedAt: string;
 }
 
+export interface Sponsor {
+  name: string;
+  imgUrl: string;
+  websiteUrl: string;
+}
+
 export interface Event {
   _id: string;
   name: string;
@@ -46,6 +52,8 @@ export interface Event {
   tag: 'fall' | 'winter';
   trailFee: number;
   isdraRaceFee: number;
+  sponsors: Sponsor[];
+  facebookUrl: string;
 }
 
 export interface InitialFormValues {
@@ -68,6 +76,14 @@ export interface Confirmation {
   tag: 'fall' | 'winter';
   races: Race[];
   registration: Registration;
+}
+
+export interface ContactFormMessage {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  message: string;
 }
 
 export interface ExtendedNextApiRequest extends NextApiRequest {

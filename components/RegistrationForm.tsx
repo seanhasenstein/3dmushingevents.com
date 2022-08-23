@@ -67,8 +67,15 @@ export default function RegistrationForm(props: Props) {
   const stripe = useStripe();
   const elements = useElements();
   const errorsRef = React.useRef<HTMLDivElement>(null);
+  const [initialRace, setInitialRace] = React.useState<string[]>([]);
   const [stripeError, setStripeError] = React.useState<string>();
   const [serverError, setServerError] = React.useState<string>();
+
+  React.useEffect(() => {
+    if (router.isReady && router.query.r) {
+      setInitialRace([getUrlParam(router.query.r)]);
+    }
+  }, [router.isReady && router.query.r]);
 
   const handleCardChange = (e: StripeCardElementChangeEvent) => {
     if (e.error) {
@@ -136,7 +143,7 @@ export default function RegistrationForm(props: Props) {
   return (
     <RegistrationFormStyles>
       <Formik
-        initialValues={initialValues}
+        initialValues={{ ...initialValues, races: initialRace }}
         enableReinitialize={true}
         validationSchema={validationSchema}
         onSubmit={values => handleSubmit(values)}

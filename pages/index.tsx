@@ -159,7 +159,7 @@ const HomepageStyles = styled.div`
       background: linear-gradient(
         180deg,
         rgba(0, 0, 0, 0) 0%,
-        rgba(0, 0, 0, 0.9) 90%
+        rgba(0, 0, 0, 1) 90%
       );
     }
 
@@ -169,6 +169,7 @@ const HomepageStyles = styled.div`
   }
 
   .description {
+    padding: 0 4rem 0 0;
     position: absolute;
     right: 1.875rem;
     left: 2rem;
@@ -191,7 +192,7 @@ const HomepageStyles = styled.div`
   }
 
   p {
-    margin: 0.625rem 0 0;
+    margin: 0.5rem 0 0;
     font-size: 1.125rem;
     font-weight: 500;
     color: #c7cbd2;
@@ -208,6 +209,10 @@ const HomepageStyles = styled.div`
       margin-bottom: 4rem;
       grid-template-columns: 1fr;
       gap: 2.75rem;
+    }
+
+    .description {
+      padding: 0;
     }
   }
 
@@ -234,15 +239,17 @@ const HomepageStyles = styled.div`
     }
 
     .description {
+      margin: -0.25rem 0 0;
       position: relative;
       z-index: 50;
       right: unset;
       left: unset;
       bottom: unset;
-      padding: 0 1.25rem 1.25rem;
+      padding: 0 1.25rem 1.5rem;
       display: flex;
       flex-direction: column;
-      align-items: center;
+      background-color: #000;
+      border-radius: 0 0 0.5rem 0.5rem;
     }
 
     .logo {
@@ -253,16 +260,14 @@ const HomepageStyles = styled.div`
     }
 
     h2 {
-      margin: 1.625rem 0 0;
+      margin: 0.25rem 0 0;
       font-size: 1.5rem;
-      color: #111827;
-      text-align: center;
+      color: #e5e7eb;
     }
 
     p {
       font-size: 1rem;
-      color: #6b7280;
-      text-align: center;
+      color: #9ca3af;
     }
   }
 
