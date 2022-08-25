@@ -1,7 +1,10 @@
 import { NextApiResponse } from 'next';
 import nc from 'next-connect';
 import { event } from '../../db';
-import { Confirmation, ExtendedNextApiRequest } from '../../interfaces';
+import {
+  ExtendedNextApiRequest,
+  RegistrationConfirmation,
+} from '../../interfaces';
 import database from '../../middleware/db';
 
 interface Request extends ExtendedNextApiRequest {
@@ -28,19 +31,30 @@ const handler = nc<Request, NextApiResponse>({
     );
 
     if (result.registrations.length === 0) {
-      res.json({ notFound: true });
+      const notFound: RegistrationConfirmation = {
+        notFound: true,
+        name: result.name,
+        dates: result.dates,
+        tag: result.tag,
+        races: result.races,
+        facebookUrl: result.facebookUrl,
+      };
+
+      res.json(notFound);
       return;
     }
 
-    const confirmation: Confirmation = {
+    const confirmation: RegistrationConfirmation = {
+      notFound: false,
       name: result.name,
       dates: result.dates,
       tag: result.tag,
       races: result.races,
       registration: result.registrations[0],
+      facebookUrl: result.facebookUrl,
     };
 
-    res.json({ confirmation });
+    res.json(confirmation);
   });
 
 export default handler;

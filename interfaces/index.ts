@@ -70,12 +70,14 @@ export interface InitialFormValues {
   cardholder: string;
 }
 
-export interface Confirmation {
+export interface RegistrationConfirmation {
+  notFound: boolean;
+  registration?: Registration;
   name: string;
   dates: string[];
   tag: 'fall' | 'winter';
   races: Race[];
-  registration: Registration;
+  facebookUrl: string;
 }
 
 export interface ContactFormMessage {

@@ -11,8 +11,7 @@ type Props = {
 };
 
 export default function FormErrorsOnSubmitScroll(props: Props) {
-  // scroll to bottom if there are validation errors
-  // when submit button is clicked to inform user
+  // scroll to bottom if there are validation errors when submit button is clicked
   React.useEffect(() => {
     if (props.isValid) return;
 

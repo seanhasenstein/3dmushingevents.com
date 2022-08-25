@@ -116,7 +116,7 @@ const EventRacesStyles = styled.div`
       padding: 0.125rem 1.5rem;
       background-color: #fff;
       border: 1px solid #e5e7eb;
-      border-radius: 0.5rem;
+      border-radius: 0.125rem;
       box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
 
       + div {
@@ -192,7 +192,10 @@ const EventRacesStyles = styled.div`
     font-size: 0.875rem;
     font-weight: 500;
     color: #1d4ed8;
-    text-decoration: underline;
+
+    &:hover {
+      text-decoration: underline;
+    }
   }
 
   @media (max-width: 768px) {

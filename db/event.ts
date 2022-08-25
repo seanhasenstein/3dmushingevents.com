@@ -48,6 +48,7 @@ export async function getRegistrationConfirmation(
           tag: 1,
           dates: 1,
           races: 1,
+          facebookUrl: 1,
           registrations: {
             $filter: {
               input: '$registrations',

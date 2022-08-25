@@ -20,7 +20,7 @@ export default function FormSummary(props: Props) {
     total: 0,
   });
 
-  // update summary
+  // update summary data from query is available
   React.useEffect(() => {
     if (props.event?.races) {
       setSummary(

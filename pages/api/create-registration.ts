@@ -51,13 +51,13 @@ const handler = nc<Request, NextApiResponse>({
     const formValues = req.body.formValues;
     const registrationId = createIdNumber();
 
-    // 1. query for the event to verify selected races and totals
+    // 1. query for the event from db
     const eventQuery = await event.getEventWithoutRegistrations(
       req.db,
       req.body.eventTag
     );
 
-    // 2. verify the selected races and totals
+    // 2. verify the users selected races and totals
     const verified = formValues.races.reduce(
       (accumulator: Accumulator, currentRaceId) => {
         const verifiedEventRace = eventQuery.races.find(
@@ -85,7 +85,7 @@ const handler = nc<Request, NextApiResponse>({
       }
     );
 
-    // 3. send payment to stripe [stripe.paymentIntents]
+    // 3. send payment to stripe
     const stripePaymentIntent = await stripe.paymentIntents.create({
       amount: verified.total,
       currency: 'usd',

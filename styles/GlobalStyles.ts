@@ -41,7 +41,7 @@ body {
   height: 100%;
   position: relative;
   font-size: 16px;
-  background-color: #f9fafb;
+  background-color: #f3f4f6;
   -webkit-font-smoothing: antialiased;
   font-feature-settings: "cv02", "cv03", "cv04", "cv09", "cv11";
 }

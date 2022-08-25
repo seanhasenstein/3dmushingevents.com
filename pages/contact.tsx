@@ -3,7 +3,7 @@ import Link from 'next/link';
 import styled from 'styled-components';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
-import Layout from '../components/Layout';
+import BasicLayout from '../components/layouts/BasicLayout';
 import { removeNonDigits } from '../utils/misc';
 
 const validationSchema = Yup.object().shape({
@@ -23,113 +23,32 @@ export default function Contact() {
   const [status, setStatus] = React.useState<'idle' | 'error' | 'success'>(
     'idle'
   );
-  const [navOpen, setNavOpen] = React.useState(false);
-
-  // disable scroll when mobile nav is open
-  React.useEffect(() => {
-    if (navOpen) {
-      document.body.style.overflow = 'hidden';
-    }
-
-    return () => {
-      document.body.style.overflow = 'inherit';
-    };
-  }, [navOpen]);
 
   return (
-    <Layout title="Contact us">
+    <BasicLayout title="Contact us">
       <ContactStyles>
         <div className="page-container">
-          <div className="actions-row">
-            <button
-              type="button"
-              onClick={e => {
-                e.stopPropagation();
-                setNavOpen(!navOpen);
-              }}
-              className="mobile-nav-button"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              <span className="sr-only">Toggle menu</span>
-            </button>
-          </div>
-          <div className="header">
-            <div className="logos">
-              <div className="logo">
-                <img
-                  src="./fall-logo.png"
-                  alt="Doty's Dusty Dog Dryland Event"
-                />
-              </div>
-              <div className="logo">
-                <img
-                  src="./winter-logo.png"
-                  alt="Doty's Dog Days of Winter Event"
-                />
-              </div>
-            </div>
-            <h2>3D Mushing Events</h2>
-            <div className={navOpen ? 'nav-open' : ''} aria-hidden="true" />
-            <div className={`nav${navOpen ? ' open' : ''}`}>
-              <div className="mobile-nav-header">
-                <div className="logos">
-                  <img
-                    src="./fall-logo.png"
-                    alt="Doty's Dusty Dryland Event"
-                    className="event-logo"
-                  />
-                  <img
-                    src="./winter-logo.png"
-                    alt="Doty's Dog Days of Winter Event"
-                    className="event-logo"
-                  />
-                </div>
-                <h3>3D Mushing Events</h3>
-                <button
-                  type="button"
-                  onClick={e => {
-                    e.stopPropagation();
-                    setNavOpen(false);
-                  }}
-                  className="close-nav-button"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                  <span className="sr-only">Close Navigation</span>
-                </button>
-              </div>
-              <nav>
-                <Link href="/event/fall">
-                  <a>Doty&apos;s Dusty Dog Dryland</a>
-                </Link>
-                <Link href="/event/winter">
-                  <a>Doty&apos;s Dog Days of Winter</a>
-                </Link>
-              </nav>
-            </div>
-          </div>
           {status !== 'success' ? (
             <>
-              <h3>Contact us</h3>
+              <div className="logos">
+                <Link href="/event/fall">
+                  <a>
+                    <img
+                      src="/fall-logo.png"
+                      alt="Doty's Dusty Dryland Event"
+                    />
+                  </a>
+                </Link>
+                <Link href="/event/winter">
+                  <a>
+                    <img
+                      src="/winter-logo.png"
+                      alt="Doty's Dog Days of Winter"
+                    />
+                  </a>
+                </Link>
+              </div>
+              <h3>Contact 3D Mushing Events</h3>
               <p>
                 Please let us know if you have questions about our events, your
                 registration, etc. We look forward to hearing from you.
@@ -260,7 +179,7 @@ export default function Contact() {
           )}
         </div>
       </ContactStyles>
-    </Layout>
+    </BasicLayout>
   );
 }
 
@@ -273,62 +192,20 @@ const ContactStyles = styled.div`
     width: 100%;
   }
 
-  .actions-row {
-    display: none;
-  }
-
-  .header {
-    padding: 0 0 1rem;
+  .logos {
     display: flex;
-    flex-direction: column;
-    align-items: center;
+    justify-content: center;
+    gap: 1.25rem;
 
-    .logos {
-      display: flex;
-      gap: 2rem;
-
-      .logo {
-        width: 5.5rem;
-
-        img {
-          width: 100%;
-        }
-      }
-    }
-  }
-
-  .nav {
-    margin: 2rem 0 0;
-    width: 100%;
-
-    .mobile-nav-header {
-      display: none;
-    }
-
-    nav {
-      display: flex;
-      justify-content: center;
-      gap: 4rem;
-      text-align: center;
-      border-top: 1px solid #c6cbd2;
-      border-bottom: 1px solid #c6cbd2;
+    img {
+      width: 5rem;
     }
 
     a {
-      margin: 0 0 -1px;
-      padding: 1rem 0;
-      font-size: 1rem;
-      font-weight: 500;
-      color: #111827;
-      border-bottom: 3px solid transparent;
-      transition: all 100ms linear;
-
-      &.small-screens-only {
-        display: none;
-      }
+      transition: transform 100ms linear;
 
       &:hover {
-        border-color: #1d4ed8;
+        transform: translateY(-3px);
       }
     }
   }
@@ -344,6 +221,8 @@ const ContactStyles = styled.div`
   h3 {
     margin: 1.125rem 0 0;
     font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: -0.025em;
     color: #111827;
     text-align: center;
   }
@@ -503,135 +382,6 @@ const ContactStyles = styled.div`
 
       &:hover {
         background-color: #2d3b51;
-      }
-    }
-  }
-
-  @media (max-width: 640px) {
-    padding: 0 1.5rem 5rem;
-
-    .actions-row {
-      padding: 1.5rem 0;
-      display: flex;
-      justify-content: flex-end;
-      align-items: center;
-      border-bottom: 1px solid #dadde2;
-    }
-
-    .header {
-      margin: 1.5rem 0 2rem;
-      padding: 0 0 1.875rem;
-      border-bottom: 1px solid #dadde2;
-    }
-
-    .nav-open {
-      position: absolute;
-      top: 0;
-      left: 0;
-      height: 100vh;
-      width: 100%;
-      background-color: rgba(0, 0, 0, 0.8);
-    }
-
-    .mobile-nav-button {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background-color: transparent;
-      border: none;
-      cursor: pointer;
-
-      svg {
-        flex-shrink: 0;
-        height: 1.5rem;
-        width: 1.5rem;
-      }
-    }
-
-    .nav {
-      margin: 0;
-      display: none;
-      flex-direction: column;
-      position: absolute;
-      top: 1rem;
-      left: 1rem;
-      right: 1rem;
-      bottom: 1rem;
-      width: calc(100% - 2rem);
-      height: calc(100vh - 2rem);
-      background-color: #fff;
-      border-radius: 0.375rem;
-      box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.3), 0 1px 2px -1px rgb(0 0 0 / 0.3);
-      z-index: 1000;
-
-      &.open {
-        display: flex;
-      }
-
-      .mobile-nav-header {
-        padding: 2rem 1.5rem;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-
-        .event-logo {
-          width: 4.5rem;
-
-          img {
-            width: 100%;
-          }
-        }
-
-        h3 {
-          margin: 1rem 0 0;
-          font-size: 1.25rem;
-          font-weight: 600;
-          color: #111827;
-          text-align: center;
-        }
-
-        .close-nav-button {
-          position: absolute;
-          bottom: 3rem;
-          height: 3rem;
-          width: 3rem;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          background-color: transparent;
-          border: 2px solid #e5e7eb;
-          color: #374151;
-          background-color: #f3f4f6;
-          border-radius: 9999px;
-          box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-          cursor: pointer;
-
-          svg {
-            flex-shrink: 0;
-            height: 1.5rem;
-            width: 1.5rem;
-          }
-        }
-      }
-
-      nav {
-        margin: 0 auto;
-        max-width: 75%;
-        width: 100%;
-        flex-direction: column;
-        justify-content: flex-start;
-        gap: 0;
-        border-color: #dadde2;
-
-        a,
-        a:hover {
-          border-bottom: 1px solid #dadde2;
-
-          &.small-screens-only {
-            display: block;
-          }
-        }
       }
     }
   }

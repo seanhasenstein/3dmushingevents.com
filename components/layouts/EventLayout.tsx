@@ -1,16 +1,21 @@
 import React from 'react';
 import Head from 'next/head';
 import styled from 'styled-components';
-import { GlobalStyles } from '../styles/GlobalStyles';
+import { GlobalStyles } from '../../styles/GlobalStyles';
+import EventHeader from './EventHeader';
 
 type Props = {
   children: React.ReactNode;
+  isLoading: boolean;
   title?: string;
+  eventTag: 'fall' | 'winter' | undefined;
+  dates?: string[] | undefined;
+  facebookUrl: string | undefined;
 };
 
-export default function Layout(props: Props) {
+export default function EventLayout(props: Props) {
   return (
-    <LayoutStyles>
+    <EventLayoutStyles>
       <Head>
         <title>
           {`${props.title ? `${props.title} | ` : ''}3D Mushing Events`}
@@ -21,17 +26,24 @@ export default function Layout(props: Props) {
       </Head>
       <GlobalStyles />
       <div>
-        <header />
+        <EventHeader
+          isLoading={props.isLoading}
+          eventTag={props.eventTag}
+          dates={props.dates}
+          facebookUrl={props.facebookUrl}
+        />
         <main>{props.children}</main>
       </div>
       <footer>
-        <p>&copy; {new Date().getFullYear()} 3D Mushing Events.</p>
+        <div className="footer-container">
+          <p>&copy; {new Date().getFullYear()} 3D Mushing Events.</p>
+        </div>
       </footer>
-    </LayoutStyles>
+    </EventLayoutStyles>
   );
 }
 
-const LayoutStyles = styled.div`
+const EventLayoutStyles = styled.div`
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -46,7 +58,7 @@ const LayoutStyles = styled.div`
     font-size: 0.875rem;
     color: #798596;
 
-    p {
+    .footer-container {
       padding: 1.75rem 0;
       border-top: 1px solid #dcdfe4;
     }

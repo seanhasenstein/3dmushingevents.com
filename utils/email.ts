@@ -609,11 +609,11 @@ function generateConfirmationHtmlEmail(
                                 If you have any questions about your payment or
                                 registration, please contact us at
                                 <a
-                                  href="mailto:todo-add-email?subject=Registration Inquiry [#${
-                                    r.id
-                                  }]"
+                                  href="mailto:${
+                                    process.env.ADMIN_NOTIFICATION_EMAIL
+                                  }?subject=Registration Inquiry [#${r.id}]"
                                   style="color: #1d4ed8; text-decoration: none"
-                                  >todo-add-email-address@email.com</a
+                                  >${process.env.ADMIN_NOTIFICATION_EMAIL}</a
                                 >.
                               </p>
                             </td>

@@ -1,4 +1,8 @@
-import { Confirmation, Either, Event, InitialFormValues } from '../interfaces';
+import {
+  Event,
+  InitialFormValues,
+  RegistrationConfirmation,
+} from '../interfaces';
 
 export async function fetchEvents() {
   const response = await fetch('/api/get-events');
@@ -22,8 +26,6 @@ export async function fetchEvent(event: 'fall' | 'winter' | undefined) {
   return data;
 }
 
-type Data = Either<{ confirmation: Confirmation }, { notFound: boolean }>;
-
 export async function fetchRegistration(
   event: 'fall' | 'winter' | undefined,
   id: string | undefined
@@ -34,7 +36,7 @@ export async function fetchRegistration(
     throw new Error(`Failed to fetch the ${event} registration id: ${id}`);
   }
 
-  const data: Data = await response.json();
+  const data: RegistrationConfirmation = await response.json();
   return data;
 }
 

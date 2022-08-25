@@ -10,7 +10,9 @@ import {
   getUrlParam,
 } from '../../../utils/misc';
 import { fetchRegistration } from '../../../queries';
-import Layout from '../../../components/Layout';
+import EventLayout from '../../../components/layouts/EventLayout';
+import QueryError from '../../../components/QueryError';
+import LoadingSpinner from '../../../components/LoadingSpinner';
 
 export default function Confirmation() {
   const router = useRouter();
@@ -41,51 +43,50 @@ export default function Confirmation() {
     }
   }, [router.isReady, router.query.tag, router.query.id]);
 
-  return (
-    <Layout title={isLoading ? 'Loading...' : data ? 'Confirmation' : ''}>
-      <ConfirmationStyles>
-        {/* {isLoading ? 'Loading...' : null} */}
-        {/* TODO: style the error message */}
-        {isError ? 'Internal server error' : null}
-        {/* TODO: style the not found message */}
-        {data?.notFound ? 'Registration not found' : null}
+  if (isError) {
+    return <QueryError />;
+  }
 
-        {data?.confirmation ? (
-          <div className="container">
-            <Link href="/">
-              <a className="back-link">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M7.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l2.293 2.293a1 1 0 010 1.414z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                Back to homepage
-              </a>
-            </Link>
-            <div className="header">
-              <img
-                src={`../../${data.confirmation.tag}-logo.png`}
-                alt={data.confirmation.name}
-                className="logo"
-              />
-              <h2>{data.confirmation.name}</h2>
-              <p className="dates">
-                {format(new Date(data.confirmation.dates[0]), 'EEEE M/d, yyyy')}{' '}
-                -{' '}
-                {format(
-                  new Date(
-                    data.confirmation.dates[data.confirmation.dates.length - 1]
-                  ),
-                  'EEEE M/d, yyyy'
-                )}
+  return (
+    <EventLayout
+      title={isLoading ? 'Loading...' : data ? 'Confirmation' : ''}
+      isLoading={isLoading}
+      eventTag={data?.tag}
+      dates={data?.dates}
+      facebookUrl={data?.facebookUrl}
+    >
+      <ConfirmationStyles>
+        {isLoading ? <LoadingSpinner /> : null}
+        {data?.notFound ? (
+          <div className="not-found">
+            <div className="not-found-container">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="icon"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              <h3>Registration not found</h3>
+              <p>
+                Make sure your registration ID is correct. If you have any
+                questions please{' '}
+                <Link href="/contact">
+                  <a>contact us</a>
+                </Link>
+                .
               </p>
             </div>
+          </div>
+        ) : null}
+
+        {!data?.notFound && data?.registration ? (
+          <div className="page-container">
             <div className="box-container">
               <div className="instructions">
                 <svg
@@ -101,9 +102,9 @@ export default function Confirmation() {
                 </svg>
                 <h4>Registration confirmation</h4>
                 <p>
-                  We received your registration for {data.confirmation.name}!
-                  You should also receive a confirmation email shortly. If you
-                  have any questions please don&apos;t hesitate to{' '}
+                  We received your registration for {data.name}! You should also
+                  receive a confirmation email shortly. If you have any
+                  questions please don't hesitate to{' '}
                   <Link href="/contact">
                     <a>contact us</a>
                   </Link>
@@ -113,20 +114,17 @@ export default function Confirmation() {
               <div className="section participant-details">
                 <div className="item">
                   <div className="label">Registration No:</div>
-                  <div className="value">
-                    {data.confirmation.registration.id}
-                  </div>
+                  <div className="value">{data.registration.id}</div>
                 </div>
                 <div className="item">
                   <div className="label">Transaction ID:</div>
-                  {/* TODO: add real stripeId */}
-                  <div className="value">pi_3LV0XSEAYVqQ2HpH1UajE3d6</div>
+                  <div className="value">{data.registration.stripeId}</div>
                 </div>
                 <div className="item">
                   <div className="label">Date:</div>
                   <div className="value">
                     {format(
-                      new Date(data.confirmation.registration.createdAt),
+                      new Date(data.registration.createdAt),
                       "P 'at' hh:mm:ssaa"
                     )}
                   </div>
@@ -134,44 +132,38 @@ export default function Confirmation() {
                 <div className="item">
                   <div className="label">Name:</div>
                   <div className="value">
-                    {data.confirmation.registration.firstName}{' '}
-                    {data.confirmation.registration.lastName}
+                    {data.registration.firstName} {data.registration.lastName}
                   </div>
                 </div>
                 <div className="item">
                   <div className="label">Hometown:</div>
                   <div className="value">
-                    {data.confirmation.registration.city},{' '}
-                    {data.confirmation.registration.state}
+                    {data.registration.city}, {data.registration.state}
                   </div>
                 </div>
                 <div className="item">
                   <div className="label">Age/Gender:</div>
                   <div className="value">
                     <span className="capitalize">
-                      {data.confirmation.registration.gender}
+                      {data.registration.gender}
                     </span>{' '}
-                    - {data.confirmation.registration.age}
+                    - {data.registration.age}
                   </div>
                 </div>
-                {data.confirmation.registration.guardian ? (
+                {data.registration.guardian ? (
                   <div className="item">
                     <div className="label">Guardian:</div>
-                    <div className="value">
-                      {data.confirmation.registration.guardian}
-                    </div>
+                    <div className="value">{data.registration.guardian}</div>
                   </div>
                 ) : null}
                 <div className="item">
                   <div className="label">Email:</div>
-                  <div className="value">
-                    {data.confirmation.registration.email}
-                  </div>
+                  <div className="value">{data.registration.email}</div>
                 </div>
                 <div className="item">
                   <div className="label">Phone:</div>
                   <div className="value">
-                    {formatPhoneNumber(data.confirmation.registration.phone)}
+                    {formatPhoneNumber(data.registration.phone)}
                   </div>
                 </div>
               </div>
@@ -179,10 +171,10 @@ export default function Confirmation() {
               <div className="section">
                 <h4>
                   Race
-                  {data.confirmation.registration.races.length > 1 ? 's' : ''}
+                  {data.registration.races.length > 1 ? 's' : ''}
                 </h4>
-                {data.confirmation.registration.races.map(r => {
-                  const race = data.confirmation.races.find(cr => cr.id == r);
+                {data.registration.races.map(r => {
+                  const race = data.races.find(cr => cr.id == r);
 
                   return (
                     <div key={r} className="race-item">
@@ -201,39 +193,27 @@ export default function Confirmation() {
                 <div className="summary-item">
                   <div className="label">Subtotal</div>
                   <div className="value">
-                    {formatToMoney(
-                      data.confirmation.registration.summary.subtotal,
-                      true
-                    )}
+                    {formatToMoney(data.registration.summary.subtotal, true)}
                   </div>
                 </div>
                 <div className="summary-item">
                   <div className="label">Trail fee</div>
                   <div className="value">
-                    {formatToMoney(
-                      data.confirmation.registration.summary.trailFee,
-                      true
-                    )}
+                    {formatToMoney(data.registration.summary.trailFee, true)}
                   </div>
                 </div>
-                {data.confirmation.registration.summary.isdraFee ? (
+                {data.registration.summary.isdraFee ? (
                   <div className="summary-item">
                     <div className="label">ISDRA fee</div>
                     <div className="value">
-                      {formatToMoney(
-                        data.confirmation.registration.summary.isdraFee,
-                        true
-                      )}
+                      {formatToMoney(data.registration.summary.isdraFee, true)}
                     </div>
                   </div>
                 ) : null}
                 <div className="summary-item total">
                   <div className="label">Total</div>
                   <div className="value">
-                    {formatToMoney(
-                      data.confirmation.registration.summary.total,
-                      true
-                    )}
+                    {formatToMoney(data.registration.summary.total, true)}
                   </div>
                 </div>
               </div>
@@ -241,7 +221,7 @@ export default function Confirmation() {
           </div>
         ) : null}
       </ConfirmationStyles>
-    </Layout>
+    </EventLayout>
   );
 }
 
@@ -249,54 +229,10 @@ const ConfirmationStyles = styled.div`
   padding: 3rem 1.5rem 5rem;
   position: relative;
 
-  .back-link {
-    position: absolute;
-    top: 2rem;
-    left: 2.5rem;
-    display: flex;
-    align-items: center;
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: #374151;
-    transition: color 100ms linear;
-
-    &:hover {
-      color: #111827;
-
-      svg {
-        transform: translateX(-1px);
-      }
-    }
-
-    svg {
-      margin: 0 0.375rem 0 0;
-      height: 1rem;
-      width: 1rem;
-      color: #9ca3af;
-    }
-  }
-
-  .container {
+  .page-container {
     margin: 0 auto;
     max-width: 40rem;
     width: 100%;
-  }
-
-  .header {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .logo {
-    width: 6rem;
-  }
-
-  h2 {
-    margin: 0.75rem 0 0;
-    font-size: 1.5rem;
-    font-weight: 700;
-    text-align: center;
   }
 
   h4 {
@@ -305,26 +241,11 @@ const ConfirmationStyles = styled.div`
     color: #111827;
   }
 
-  .dates {
-    margin: 1.125rem auto 0;
-    display: inline-flex;
-    padding: 0.375rem 0.875rem;
-    background-color: #1f2937;
-    border-radius: 9999px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: #f3f4f6;
-    line-height: initial;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-
   .box-container {
-    margin: 2.5rem 0 0;
     padding: 2.5rem 3.75rem;
     background: #fff;
-    border: 1px solid #d1d5db;
-    border-radius: 0.5rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.125rem;
     box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
   }
 
@@ -427,19 +348,65 @@ const ConfirmationStyles = styled.div`
     }
   }
 
+  .not-found {
+    display: flex;
+    justify-content: center;
+
+    .not-found-container {
+      padding: 2rem 2rem 3rem;
+      max-width: 30rem;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      background-color: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 0.125rem;
+      box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+      text-align: center;
+    }
+
+    h3 {
+      margin: 0.25rem 0 0;
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: #111827;
+    }
+
+    p {
+      margin: 1rem auto 0;
+      max-width: 26rem;
+      font-size: 1rem;
+      color: #4b5563;
+      line-height: 1.5;
+    }
+
+    .icon {
+      height: 1.875rem;
+      width: 1.875rem;
+      color: #be123c;
+    }
+
+    a {
+      color: #1d4ed8;
+      text-decoration: underline;
+    }
+  }
+
   @media (max-width: 640px) {
-    padding: 5rem 1.5rem;
+    padding: 1.5rem 1.5rem 5rem;
 
     .box-container {
       padding: 2.5rem 1.3125rem;
     }
 
-    .back-link {
-      padding: 0.25rem 0;
-      top: 2rem;
-      left: calc(50% - 6rem);
-      width: 12rem;
+    .actions-row {
+      padding: 1.5rem 0;
+      display: flex;
       justify-content: center;
+      align-items: center;
+      border-bottom: 1px solid #dadde2;
     }
 
     .participant-details .item {
@@ -456,12 +423,6 @@ const ConfirmationStyles = styled.div`
 
     .summary-item {
       max-width: unset;
-    }
-  }
-
-  @media (max-width: 375px) {
-    .dates {
-      font-size: 0.5625rem;
     }
   }
 `;

@@ -2,13 +2,13 @@ import Link from 'next/link';
 import styled from 'styled-components';
 import { format } from 'date-fns';
 import useEventsQuery from '../hooks/useEventsQuery';
-import Layout from '../components/Layout';
+import BasicLayout from '../components/layouts/BasicLayout';
 
 export default function FourOhFour() {
   const query = useEventsQuery();
 
   return (
-    <Layout title="404 Error">
+    <BasicLayout title="404 Error">
       <FourOhFourStyles>
         {query.data ? (
           <div className="container">
@@ -26,7 +26,7 @@ export default function FourOhFour() {
               />
             </svg>
             <h2>404 Error</h2>
-            <p>Sorry, the page you are looking for doesn&apos;t exist.</p>
+            <p>Sorry, the page you are looking for doesn't exist.</p>
             <div className="flex-row">
               {query.data.map(event => (
                 <div key={event._id} className="event">
@@ -54,7 +54,7 @@ export default function FourOhFour() {
           </div>
         ) : null}
       </FourOhFourStyles>
-    </Layout>
+    </BasicLayout>
   );
 }
 

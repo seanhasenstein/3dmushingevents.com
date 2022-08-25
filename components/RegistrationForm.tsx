@@ -1,62 +1,20 @@
 import React from 'react';
 import { useRouter } from 'next/router';
+import Link from 'next/link';
 import styled from 'styled-components';
 import { CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
-import { Formik, Form, Field, FieldArray, ErrorMessage } from 'formik';
-import * as Yup from 'yup';
-import { Event, InitialFormValues } from '../interfaces';
-import { unitedStates } from '../utils/states';
-import { formatToMoney, getUrlParam, removeNonDigits } from '../utils/misc';
 import { StripeCardElementChangeEvent } from '@stripe/stripe-js';
+import { Formik, Form, Field, FieldArray, ErrorMessage } from 'formik';
+import { Event } from '../interfaces';
+import { formatToMoney, getUrlParam } from '../utils/misc';
+import {
+  handleSubmit,
+  initialValues,
+  validationSchema,
+} from '../utils/registration';
+import { unitedStates } from '../utils/states';
 import FormSummary from './FormSummary';
 import FormErrorsOnSubmitScroll from './FormErrorsOnSubmitScroll';
-import { createRegistrationFetch } from '../queries';
-import Link from 'next/link';
-
-const initialValues: InitialFormValues = {
-  firstName: '',
-  lastName: '',
-  gender: '',
-  email: '',
-  phone: '',
-  city: '',
-  state: '',
-  age: '',
-  guardian: '',
-  races: [],
-  cardholder: '',
-};
-
-const validationSchema = Yup.object().shape({
-  firstName: Yup.string().required('First name is required'),
-  lastName: Yup.string().required('Last name is required'),
-  email: Yup.string()
-    .email('Invalid email address')
-    .required('Email is required'),
-  phone: Yup.string()
-    .transform(value => {
-      return removeNonDigits(value);
-    })
-    .matches(new RegExp(/^\d{10}$/), 'Must be a valid 10 digit number')
-    .required('Phone is required'),
-  city: Yup.string().required('Your city is required'),
-  state: Yup.string().required('Your state is required'),
-  age: Yup.string()
-    .test('age-test', 'Invalid age provided', (values, context) => {
-      if (isNaN(Number(values))) {
-        return context.createError({ message: 'Invalid age provided' });
-      }
-
-      return true;
-    })
-    .required('Age on race day is required'),
-  guardian: Yup.string().when('age', {
-    is: (value: string) => Number(value) < 18,
-    then: schema => schema.required('Guardian is requied for anyone under 18'),
-  }),
-  races: Yup.array().min(1, 'At least 1 race is required'),
-  cardholder: Yup.string().required('Cardholder name is required'),
-});
 
 interface Props {
   event: Event | undefined;
@@ -71,6 +29,8 @@ export default function RegistrationForm(props: Props) {
   const [stripeError, setStripeError] = React.useState<string>();
   const [serverError, setServerError] = React.useState<string>();
 
+  // setInitialRace from url param if user clicked register
+  // from a specific race on the events page
   React.useEffect(() => {
     if (router.isReady && router.query.r) {
       setInitialRace([getUrlParam(router.query.r)]);
@@ -85,71 +45,33 @@ export default function RegistrationForm(props: Props) {
     setStripeError(undefined);
   };
 
-  const handleSubmit = async (formValues: InitialFormValues) => {
-    try {
-      const tagUrlParam = getUrlParam(router.query.tag);
-      const cardElement = elements?.getElement(CardElement);
-
-      if (!stripe || !cardElement) {
-        throw new Error(
-          'Error loading Stripe. Please refresh the page and try again'
-        );
-      }
-
-      if (
-        !tagUrlParam ||
-        (tagUrlParam !== 'fall' && tagUrlParam !== 'winter')
-      ) {
-        throw new Error('url tag parameter must be `fall` or `winter`');
-      }
-
-      const stripePaymentMethod = await stripe.createPaymentMethod({
-        type: 'card',
-        card: cardElement,
-        billing_details: {
-          name: formValues.cardholder,
-          email: formValues.email.toLowerCase().trim(),
-          phone: removeNonDigits(formValues.phone),
-        },
-      });
-
-      if (stripePaymentMethod.error) {
-        throw new Error(stripePaymentMethod.error.message);
-      }
-
-      const createRegistration = await createRegistrationFetch(
-        formValues,
-        tagUrlParam,
-        stripePaymentMethod.paymentMethod.id
-      );
-
-      router.push(
-        `/event/${getUrlParam(router.query.tag)}/confirmation?id=${
-          createRegistration.registrationId
-        }`
-      );
-    } catch (err) {
-      if (err instanceof Error) {
-        console.error(err);
-        if (err.message === 'Internal server error.') {
-          setServerError(err.message);
-        } else {
-          setStripeError(err.message);
-        }
-      }
-    }
-  };
-
   return (
     <RegistrationFormStyles>
       <Formik
         initialValues={{ ...initialValues, races: initialRace }}
         enableReinitialize={true}
         validationSchema={validationSchema}
-        onSubmit={values => handleSubmit(values)}
+        onSubmit={formValues =>
+          handleSubmit({
+            formValues,
+            stripe,
+            elements,
+            CardElement,
+            router,
+            setServerError,
+            setStripeError,
+          })
+        }
       >
         {({ values, isSubmitting, isValid, submitCount, errors }) => (
           <Form>
+            <h2>Registration form</h2>
+            <p>
+              This form is for the{' '}
+              {props?.event?.dates &&
+                new Date(props.event.dates[0]).getFullYear()}{' '}
+              {props?.event?.name} event.
+            </p>
             <div className="race-selection">
               <h3>
                 <span>Select your races</span>
@@ -431,7 +353,20 @@ export default function RegistrationForm(props: Props) {
                 {isSubmitting ? (
                   <LoadingSpinner />
                 ) : values.races.length === 0 ? (
-                  'Please select at least 1 race'
+                  <>
+                    Please select at least 1 race
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </>
                 ) : (
                   'Submit your registration'
                 )}
@@ -462,6 +397,27 @@ export default function RegistrationForm(props: Props) {
 }
 
 const RegistrationFormStyles = styled.div`
+  .race-selection {
+    margin: 3rem 0 0;
+  }
+
+  h2,
+  p {
+    text-align: center;
+  }
+
+  h2 {
+    font-size: 1.5rem;
+  }
+
+  p {
+    margin: 0.875rem 0 0;
+    font-size: 1rem;
+    font-weight: 500;
+    color: #6b7280;
+    line-height: 1.5;
+  }
+
   h3 {
     position: relative;
     font-size: 1.125rem;
@@ -471,7 +427,7 @@ const RegistrationFormStyles = styled.div`
 
     span {
       padding: 0 1.25rem;
-      background-color: #f9fafb;
+      background-color: #f3f4f6;
     }
 
     &::after {
@@ -653,6 +609,15 @@ const RegistrationFormStyles = styled.div`
     cursor: pointer;
     transition: all 100ms linear;
 
+    svg {
+      position: absolute;
+      right: 1rem;
+      top: 0.75rem;
+      height: 1rem;
+      width: 1rem;
+      color: rgba(255, 255, 255, 0.6);
+    }
+
     &:hover {
       background-color: #2d3b51;
     }
@@ -670,7 +635,7 @@ const RegistrationFormStyles = styled.div`
     &:disabled,
     &:disabled:hover {
       background-color: #263244;
-      color: rgba(255, 255, 255, 0.75);
+      color: rgba(255, 255, 255, 0.9);
       cursor: default;
     }
   }

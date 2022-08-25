@@ -8,8 +8,8 @@ export default function FallEventDetails() {
   return (
     <>
       <p>
-        Doty&apos;s Dusty Dog is a family friendly environment for mushers, pups
-        and spectators.
+        Doty's Dusty Dog is a family friendly environment for mushers, pups and
+        spectators.
       </p>
       <p>
         Participants have the option to enter one or more of the following

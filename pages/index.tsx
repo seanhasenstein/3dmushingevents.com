@@ -5,7 +5,7 @@ import { format } from 'date-fns';
 import { connectToDb, event } from '../db';
 import { Event } from '../interfaces';
 import useEventQuery from '../hooks/useEventQuery';
-import Layout from '../components/Layout';
+import BasicLayout from '../components/layouts/BasicLayout';
 import useEventsQuery from '../hooks/useEventsQuery';
 
 export const getServerSideProps: GetServerSideProps = async () => {
@@ -25,7 +25,7 @@ export default function Home(props: Props) {
   useEventQuery('winter', props.events);
 
   return (
-    <Layout>
+    <BasicLayout>
       <HomepageStyles>
         <div className="header">
           <div>
@@ -64,11 +64,13 @@ export default function Home(props: Props) {
           ))}
         </div>
       </HomepageStyles>
-    </Layout>
+    </BasicLayout>
   );
 }
 
 const HomepageStyles = styled.div`
+  padding: 0 0 5rem;
+
   .header {
     padding: 5rem 1.5rem 0;
     display: flex;
@@ -141,7 +143,7 @@ const HomepageStyles = styled.div`
   .featured-img,
   .featured-img::after,
   .featured-img img {
-    border-radius: 0.5rem;
+    border-radius: 0.125rem;
   }
 
   .featured-img {
