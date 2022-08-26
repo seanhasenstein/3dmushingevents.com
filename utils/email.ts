@@ -637,16 +637,16 @@ function generateConfirmationHtmlEmail(
                             e.name
                           } at
                           <a
-                            href="https://3dmushingevents"
+                            href="https://www.3dmushingevents.com/"
                             style="color: #1d4ed8; text-decoration: none"
                             >3dmushingevents.com</a
                           >.
                         </p>
                         <p style="margin: 0 0 20px 0">
                           <a
-                            href="https://3dmushingevents/event/${
+                            href="https://www.3dmushingevents.com/event/${
                               e.tag
-                            }/-confirmation?id=${r.id}"
+                            }/confirmation?id=${r.id}"
                             style="color: #1d4ed8; text-decoration: none"
                             >Click here</a
                           >
